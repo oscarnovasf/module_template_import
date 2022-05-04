@@ -1,0 +1,30 @@
+################################################################################
+# MENÚ GLOBAL PARA LOS MÓDULOS CUSTOM                                          #
+################################################################################
+
+# Menú de configuración para todas las herramientas.
+custom_module.global.admin:
+  title: 'Custom Modules'
+  route_name: custom_module.global.admin
+  parent: system.admin
+  weight: 50
+
+################################################################################
+# CONFIGURACIÓN DEL MÓDULO                                                     #
+################################################################################
+
+# Menú para todos los elementos de este módulo.
+custom_module.module_template_import.admin:
+  title: 'module_template_import_name'
+  description: 'module_template_import_name - Functionalities'
+  route_name: custom_module.module_template_import.admin
+  parent: custom_module.global.admin
+
+################################################################################
+# FORMULARIOS DE IMPORTACIÓN                                                   #
+################################################################################
+
+custom_module.module_template_import.import_data:
+  title: Import data form
+  route_name: custom_module.module_template_import.import_data
+  parent: custom_module.module_template_import.admin

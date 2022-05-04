@@ -1,0 +1,14 @@
+{
+    "name": "drupal/module_template_import",
+    "description": "module_template_import_name",
+    "type": "drupal-custom-module",
+    "license": "GPL-3.0-or-later",
+    "version": "1.0.0",
+
+    "require": {
+    },
+
+    "require-dev": {
+        "drupal/potx": "^1.0@alpha"
+    }
+}

@@ -1,0 +1,60 @@
+################################################################################
+# MENÚ GLOBAL PARA LOS MÓDULOS CUSTOM                                          #
+################################################################################
+
+# Menú de configuración para todas las herramientas.
+custom_module.global.admin:
+  path: '/admin/custom_modules'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Custom Modules'
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    no_cache: 'TRUE'
+
+################################################################################
+# CONFIGURACIÓN DEL MÓDULO                                                     #
+################################################################################
+
+# Ruta para ver todas las herramientas de este módulo.
+custom_module.module_template_import.admin:
+  path: '/admin/custom_modules/module_template_import'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'module_template_import_name'
+  options:
+    _admin_route: TRUE
+  requirements:
+    _permission: 'my custom migrate import data'
+
+################################################################################
+# FORMULARIOS                                                                  #
+################################################################################
+
+# Formulario de importación de datos.
+module_template_import.import_data:
+  path: '/admin/custom_modules/module_template_import/import-data'
+  defaults:
+    _form: 'Drupal\module_template_import\Form\ImportForm'
+    _title: 'Import Form'
+  requirements:
+    _permission: 'my custom migrate import data'
+  options:
+    no_cache: 'TRUE'
+
+# Formulario de confirmación.
+module_template_import.confirm_form:
+  path: '/admin/custom_modules/module_template_import/import-data/confirm/{content_type}/{has_headers}'
+  defaults:
+    _form: '\Drupal\module_template_import\Form\ConfirmForm'
+    _title: 'Confirm import data'
+  requirements:
+    _permission: 'my custom migrate import data'
+  options:
+    no_cache: 'TRUE'
+    parameters:
+      content_type:
+        type: string
+      has_headers:
+        type: bool

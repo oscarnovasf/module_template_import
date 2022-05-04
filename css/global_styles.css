@@ -1,0 +1,12 @@
+/* *****************************************************************************
+ * FORMULARIOS.
+ **************************************************************************** */
+
+/* Formularios para subir los archivos */
+.my-custom-migrate-import-form {margin: 0 auto; max-width: 900px; }
+.my-custom-migrate-import-form h2 {margin-bottom: 30px;}
+.my-custom-migrate-import-form input[type="file"] {width: 100%; }
+.my-custom-migrate-import-form .form-actions {text-align: center; margin-top: 20px; }
+
+/* Formulario de confirmación */
+table.my-custom-migrate-sample-data {margin-top: 40px; }
