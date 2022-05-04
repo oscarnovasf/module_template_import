@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * @file
+ * module_template_import.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Render\Markup;
+
+use Drupal\module_template_import\lib\general\MarkdownParser;
+
+/**
+ * Implements hook_help().
+ */
+function module_template_import_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+
+    case 'help.page.module_template_import':
+      /* Añado el contenido del archivo README.md a la ayuda del módulo */
+      $parser = new MarkdownParser();
+
+      $module_path = drupal_get_path('module', "module_template_import");
+
+      $readme_ruta = $module_path . "/README.md";
+      $contenido = '';
+      if (file_exists($readme_ruta)) {
+        $contenido = file_get_contents($readme_ruta);
+        $contenido = Markup::create($parser->text($contenido));
+      }
+
+      $template_path = $module_path . "/templates/custom/help.html.twig";
+      $template = file_get_contents($template_path);
+      $build = [
+        'description' => [
+          '#type' => 'inline_template',
+          '#template' => $template,
+          '#context' => [
+            'readme' => $contenido,
+          ],
+        ],
+      ];
+      return $build;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_page_attachments().
+ */
+function module_template_import_page_attachments(array &$attachments) {
+  /* Añadir el CSS a toda la web */
+  $attachments['#attached']['library'][] = 'module_template_import/global_libraries';
+}

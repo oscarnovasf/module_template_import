@@ -1,0 +1,8 @@
+################################################################################
+# CONFIGURACIÓN DEL MÓDULO                                                     #
+################################################################################
+
+# Usar el formulario de importación de datos
+my custom migrate import data:
+  title: 'module_template_import_name - Import data'
+  description: 'Allow users to use import data forms.'

@@ -1,0 +1,114 @@
+# Spanish translation of module_template_import_name
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: module_template_import_name\n"
+"MIME-Version: 2.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# ##################################################################
+# src/CONTROLLER
+# ##################################################################
+
+# GeneralController.php
+msgid "One item processed."
+msgstr "Un elemento procesado"
+
+msgid "@count items processed."
+msgstr "@count elementos procesados."
+
+msgid "Finished with an error."
+msgstr "Finalizado con un error."
+
+# ImportXXXXXXXXController.php
+msgid "Working..."
+msgstr "Trabajando..."
+
+# ##################################################################
+# src/FORM
+# ##################################################################
+
+# ImportForm.php
+msgid "Use this form to upload a YML or CSV file."
+msgstr "Use este formulario para subir un archivo YML o CSV."
+
+msgid "Select the type of content you want to import"
+msgstr "Seleccione el tipo de contenido que quiere importar"
+
+msgid "File has headers"
+msgstr "El archivo tiene encabezados"
+
+msgid "File"
+msgstr "Archivo"
+
+msgid "Upload your file"
+msgstr "Suba su archivo"
+
+msgid "Upload and Import"
+msgstr "Subir e Importar"
+
+msgid "Invalid extension"
+msgstr "Extensión no válida"
+
+msgid "Data validation errors have occurred."
+msgstr "Se han producido errores de validación de datos."
+
+msgid "Invalid file encoding."
+msgstr "Codificación del archivo no válida."
+
+msgid "Error reading file."
+msgstr "Error leyendo el archivo."
+
+# ImportForm.php (Tipos de datos que se pueden importar)
+msgid "Users"
+msgstr "Usuarios"
+
+msgid "Articles"
+msgstr "Artículos"
+
+# ConfirmForm.php
+msgid "<h1>Content to import: @content_type</h1>"
+msgstr "<h1>Contenido a importar: @content_type</h1>"
+
+msgid "Sample data (%mostrando of %total)"
+msgstr "Ejemplo de los datos (%mostrando de %total)"
+
+msgid "We have not received all the parameters."
+msgstr "No hemos recibido todos los parámetros."
+
+msgid "Data Import"
+msgstr "Importación de Datos"
+
+msgid "Import is starting..."
+msgstr "La importación está comenzando..."
+
+msgid "No data found"
+msgstr "No se han encontrado datos"
+
+# ##################################################################
+# /
+# ##################################################################
+
+# module_template_import.info.yml
+msgid "My Custom Migrate - Functionalities"
+msgstr "My Custom Migrate - Funcionalidades"
+
+# module_template_import.links.menu.yml
+msgid "Import data form"
+msgstr "Formulario de Importación de datos"
+
+# module_template_import.permissions.yml
+msgid "My Custom Migrate - Import data"
+msgstr "My Custom Migrate - Importar datos"
+
+msgid "Allow users to use import data forms."
+msgstr "Permitir a los usuarios usar el formulario de importación de datos"
+
+# module_template_import.routing.yml
+msgid "Import Form"
+msgstr "Formulario de Importación"
+
+msgid "Confirm import data"
+msgstr "Confirmar importación de datos"

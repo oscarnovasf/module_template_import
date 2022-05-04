@@ -1,0 +1,24 @@
+# Datos del módulo
+name: 'module_template_import_name'
+description: 'module_template_import_name - Functionalities'
+project: 'module_template_import'
+
+# Datos de la versión
+package: Migration
+type: module
+version: '1.0.0'
+
+# Tema
+base theme: false
+
+# Dependencias
+dependencies:
+  - node
+  - user
+
+# Requisitos
+core_version_requirement: ^8.8 || ^9
+
+# Traducciones
+'interface translation project': module_template_import
+'interface translation server pattern': 'modules/custom/module_template_import/config/translations/module_template_import.%language.po'

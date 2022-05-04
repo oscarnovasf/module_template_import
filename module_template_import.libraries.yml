@@ -1,0 +1,19 @@
+################################################################################
+# ESTILOS Y LIBRERÍAS GLOBALES                                                 #
+################################################################################
+global_libraries:
+  version: VERSION
+  css:
+    theme:
+      css/global_styles.css: {}
+
+################################################################################
+# LIBRERÍAS                                                                    #
+################################################################################
+
+# Para la visualización de Readme, License y Changelog.
+markdown:
+  version: VERSION
+  css:
+    theme:
+      css/markdown.css: {}
