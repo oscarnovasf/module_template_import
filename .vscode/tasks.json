@@ -1,0 +1,460 @@
+{
+  // Ver https://go.microsoft.com/fwlink/?LinkId=733558
+  // para más documentación sobre el formato de este archivo.
+  "version": "2.0.0",
+  "tasks": [
+
+    /* *************************************************************************
+     * TAREAS PARA ACTUALIZAR LOS SNIPPETS.
+     **************************************************************************/
+
+    {
+      "label": "Actualizar snippets (Clases)",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_clases.code-snippets -o .vscode/drupal_clases.code-snippets",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "snippets",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar snippets (Formularios)",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_form.code-snippets -o .vscode/drupal_form.code-snippets",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "snippets",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar snippets (JavaScript)",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_js.code-snippets -o .vscode/drupal_js.code-snippets",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "snippets",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar snippets (Uses)",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_uses.code-snippets -o .vscode/drupal_uses.code-snippets",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "snippets",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar snippets (Utils)",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/utils.code-snippets -o .vscode/utils.code-snippets",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "snippets",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "- Actualizar snippets",
+      "type": "shell",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "never",
+      },
+      "dependsOn": [
+        "Actualizar snippets (Clases)",
+        "Actualizar snippets (Formularios)",
+        "Actualizar snippets (JavaScript)",
+        "Actualizar snippets (Uses)",
+        "Actualizar snippets (Utils)",
+      ]
+    },
+
+    /* *************************************************************************
+     * TAREAS PARA ACTUALIZAR LA CONFIGURACIÓN.
+     **************************************************************************/
+
+    {
+      "label": "Actualizar cspell.json",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/cspell.json -o .vscode/cspell.json",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar extensions.json",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/extensions.json -o .vscode/extensions.json",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar launch.json",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/launch.json -o .vscode/launch.json",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar settings.json",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/settings.json -o .vscode/settings.json",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar tasks.json",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/tasks.json -o .vscode/tasks.json",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar .editorconfig",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.editorconfig -o .editorconfig",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar .eslintignore",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.eslintignore -o .eslintignore",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar .eslintrc.json",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.eslintrc.json -o .eslintrc.json",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar phpcs.xml",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpcs.xml -o phpcs.xml",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "documentacion",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar phpmd.xml",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpmd.xml -o phpmd.xml",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "documentacion",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar phpdox.xml",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpdox.xml -o phpdox.xml && grep -l module_template phpdox.xml|xargs sed -i -e \"s/module_template/${workspaceFolderBasename}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "documentacion",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar .gitignore",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.gitignore_tasks -o .gitignore",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "documentacion",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Actualizar .versionrc",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.versionrc -o .versionrc",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "documentacion",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "- Actualizar configuraciones",
+      "type": "shell",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "never",
+      },
+      "dependsOn": [
+        "Actualizar cspell.json",
+        "Actualizar extensions.json",
+        "Actualizar launch.json",
+        "Actualizar settings.json",
+        "Actualizar tasks.json",
+        "Actualizar .editorconfig",
+        "Actualidar .eslintignore",
+        "Actualidar .eslintrc.json"
+      ]
+    },
+
+    {
+      "label": "- Actualizar documentación",
+      "type": "shell",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "never",
+      },
+      "dependsOn": [
+        "Actualizar phpcs.xml",
+        "Actualizar phpdox.xml",
+        "Actualizar phpmd.xml",
+        "Actualizar .versionrc"
+      ]
+    },
+
+    /* *************************************************************************
+     * TAREAS PARA ACTUALIZAR / DESCARGAR LIBRERÍAS.
+     **************************************************************************/
+
+    {
+      "label": "-- Librería: CalendarLinkFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/CalendarLinkFunctions.php -o ${input:destino}/CalendarLinkFunctions.php && grep -l module_template ${input:destino}/CalendarLinkFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "-- Librería: DateTimeFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/DateTimeFunctions.php -o ${input:destino}/DateTimeFunctions.php && grep -l module_template ${input:destino}/DateTimeFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "-- Librería: FileFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/FileFunctions.php -o ${input:destino}/FileFunctions.php && grep -l module_template ${input:destino}/FileFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "-- Librería: FtpFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/FtpFunctions.php -o ${input:destino}/FtpFunctions.php && grep -l module_template ${input:destino}/FtpFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "-- Librería: Mailing.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino_mailing} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/Mailing.php -o ${input:destino_mailing}/Mailing.php && grep -l module_template ${input:destino_mailing}/Mailing.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "clear": true
+      },
+      "dependsOn": [
+        "-- Librería: ResponseFunctions.php",
+      ],
+    },
+
+    {
+      "label": "-- Librería: MarkdownParser.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/MarkdownParser.php -o ${input:destino}/MarkdownParser.php && grep -l module_template ${input:destino}/MarkdownParser.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "-- Librería: ParamsFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ParamsFunctions.php -o ${input:destino}/ParamsFunctions.php && grep -l module_template ${input:destino}/ParamsFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "-- Librería: ResponseFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ResponseFunctions.php -o ${input:destino}/ResponseFunctions.php && grep -l module_template ${input:destino}/ResponseFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "-- Librería: StringFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/StringFunctions.php -o ${input:destino}/StringFunctions.php && grep -l module_template ${input:destino}/StringFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "-- Librería: ValidateFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ValidateFunctions.php -o ${input:destino}/ValidateFunctions.php && grep -l module_template ${input:destino}/ValidateFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "clear": true
+      },
+    },
+
+    /* *************************************************************************
+     * TAREAS PARA DOCKER COMPOSE.
+     **************************************************************************/
+/*
+    {
+      "label": "Docker-Compose (UP)",
+      "type": "shell",
+      "command": "docker-compose up",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "docker-compose",
+        "clear": true
+      },
+    },
+
+    {
+      "label": "Docker-Compose (STOP)",
+      "type": "shell",
+      "command": "docker-compose stop",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "docker-compose",
+        "clear": true
+      }
+    },
+*/
+
+  ],
+
+  "inputs": [
+    {
+      "id": "destino",
+      "description": "Destino:",
+      "type": "promptString",
+      "default": "src/lib/general"
+    },
+    {
+      "id": "destino_mailing",
+      "description": "Destino (Mailing):",
+      "type": "promptString",
+      "default": "src/lib"
+    },
+    {
+      "id": "namespace",
+      "description": "NameSpace:",
+      "type": "promptString",
+      "default": "${workspaceFolderBasename}"
+    }
+  ]
+
+}
