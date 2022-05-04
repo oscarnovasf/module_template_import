@@ -36,7 +36,7 @@ class GeneralController extends ControllerBase {
     $tempstore->set('array_headers_data', NULL);
 
     /* Redirecciono al formulario de importación */
-    $return_url = Url::fromRoute('module_template_import.import_data', []);
+    $return_url = Url::fromRoute('custom_module.module_template_import.import_data', []);
     $destination = $return_url->toString();
     $response = new RedirectResponse($destination, 301);
     return $response->send();

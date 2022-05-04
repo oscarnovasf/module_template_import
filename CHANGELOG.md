@@ -6,8 +6,19 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
   > Ver TODO.md
 
 ---
-* ## [v2.0.0] - 2022-
-  > Revisión
+* ## [v2.0.1] - 2022-05-04
+  > Revisión.
+
+  * #### Añadido:
+    - Posibilidad de indicar si se quiere actualizar el nodo en caso de existir.
+
+  * #### Errores:
+    - Corregidos varios errores en las rutas provocados por la revisión
+      anterior.
+
+---
+* ## [v2.0.0] - 2022-05-04
+  > Revisión.
 
   * #### Añadido:
     - Se adjunta ejemplo de importación de un Node para poder usarlo como

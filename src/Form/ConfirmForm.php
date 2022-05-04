@@ -58,6 +58,14 @@ class ConfirmForm extends ConfirmFormBase {
   protected $hasHeaders = FALSE;
 
   /**
+   * Indica si se debe actualizar en caso de existir el nodo.
+   *
+   * @var bool
+   *   TRUE si tiene que actualizarse.
+   */
+  private $updateIfExists = FALSE;
+
+  /**
    * {@inheritdoc}
    */
   public function getFormId() : string {
@@ -67,7 +75,11 @@ class ConfirmForm extends ConfirmFormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, string $content_type = NULL, bool $has_headers = TRUE) {
+  public function buildForm(array $form,
+                            FormStateInterface $form_state,
+                            string $content_type = NULL,
+                            bool $has_headers = TRUE,
+                            bool $update_if_exists = TRUE) {
 
     /* Primero genero el formulario por defecto */
     $form = parent::buildForm($form, $form_state);
@@ -80,6 +92,7 @@ class ConfirmForm extends ConfirmFormBase {
     /* Obtengo el contenido con el que tengo que trabajar */
     $this->contentType = $content_type;
     $this->hasHeaders = $has_headers;
+    $this->updateIfExists = $update_if_exists;
 
     $form['header'] = [
       '#markup' => $this->t('<h1>Content to import: @content_type</h1>', [
@@ -96,7 +109,17 @@ class ConfirmForm extends ConfirmFormBase {
       array_walk($row, [$this, 'truncate']);
     }
 
-    /* TODO Crear encabezados si estos no existen */
+    /* Crear encabezados si estos no existen */
+    switch ($this->contentType) {
+
+      case 'articles':
+        if (!$this->hasHeaders) {
+          $this->arrayHeadersData = [NodeSample::getHeaders()];
+          $tempstore->set('array_headers_data', $this->arrayHeadersData);
+        }
+        break;
+
+    }
 
     $form['content'] = [
       '#type' => 'table',
@@ -133,10 +156,10 @@ class ConfirmForm extends ConfirmFormBase {
       /* Compruebo que tipo de contenido estoy importando */
       switch ($this->contentType) {
 
-        case 'users':
+        case 'articles':
           $operations[] = [
             'Drupal\module_template_import\Controller\NodeSampleController::addItem',
-            [$row],
+            [$row, $this->updateIfExists],
           ];
           break;
 
@@ -167,7 +190,7 @@ class ConfirmForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getCancelUrl() {
-    return Url::fromRoute("module_template_import.import_data", []);
+    return Url::fromRoute("custom_module.module_template_import.import_data", []);
   }
 
   /**
@@ -184,7 +207,7 @@ class ConfirmForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getDescription() {
-    /* Vacio la descripción del formulario pues ya se muestra en buildForm */
+    /* Vacío la descripción del formulario pues ya se muestra en buildForm */
     return '';
   }
 
@@ -201,7 +224,7 @@ class ConfirmForm extends ConfirmFormBase {
    *   Redirección.
    */
   private function returnToCallerPage() {
-    return new RedirectResponse("/admin/manager/import-data");
+    return new RedirectResponse("/admin/custom_modules/module_template_import/import-data");
   }
 
   /**

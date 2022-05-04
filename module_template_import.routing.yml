@@ -33,7 +33,7 @@ custom_module.module_template_import.admin:
 ################################################################################
 
 # Formulario de importación de datos.
-module_template_import.import_data:
+custom_module.module_template_import.import_data:
   path: '/admin/custom_modules/module_template_import/import-data'
   defaults:
     _form: 'Drupal\module_template_import\Form\ImportForm'
@@ -44,7 +44,7 @@ module_template_import.import_data:
     no_cache: 'TRUE'
 
 # Formulario de confirmación.
-module_template_import.confirm_form:
+custom_module.module_template_import.confirm_form:
   path: '/admin/custom_modules/module_template_import/import-data/confirm/{content_type}/{has_headers}'
   defaults:
     _form: '\Drupal\module_template_import\Form\ConfirmForm'
