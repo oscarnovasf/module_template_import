@@ -25,6 +25,6 @@ custom_module.module_template_import.admin:
 ################################################################################
 
 custom_module.module_template_import.import_data:
-  title: Import data form
+  title: 'Import data form'
   route_name: custom_module.module_template_import.import_data
   parent: custom_module.module_template_import.admin

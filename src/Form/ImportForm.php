@@ -63,6 +63,14 @@ class ImportForm extends FormBase {
   private $hasHeaders = FALSE;
 
   /**
+   * Indica si se debe actualizar en caso de existir el nodo.
+   *
+   * @var bool
+   *   TRUE si tiene que actualizarse.
+   */
+  private $updateIfExists = FALSE;
+
+  /**
    * {@inheritdoc}
    */
   public function getFormId() {
@@ -118,6 +126,12 @@ class ImportForm extends FormBase {
       '#default_value' => TRUE,
     ];
 
+    $form['update_if_exists'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Update if exists'),
+      '#default_value' => TRUE,
+    ];
+
     $form['import_file'] = [
       '#type' => 'managed_file',
       '#title' => $this->t('File'),
@@ -154,6 +168,9 @@ class ImportForm extends FormBase {
 
     /* Almaceno el valor de si tiene encabezados */
     $this->hasHeaders = $form_state->getValue('has_headers');
+
+    /* Almaceno el valor de si tiene que actualizarse en caso de existir. */
+    $this->updateIfExists = $form_state->getValue('update_if_exists');
 
     /* Obtener el array del archivo almacenado temporalmente */
     $import_file = $form_state->getValue('import_file');
@@ -228,9 +245,10 @@ class ImportForm extends FormBase {
     $tempstore->set('array_headers_data', $this->arrayHeadersData);
 
     /* Redirecciono al formulario de confirmación */
-    $form_state->setRedirectUrl(Url::fromRoute("module_template_import.confirm_form", [
+    $form_state->setRedirectUrl(Url::fromRoute("custom_module.module_template_import.confirm_form", [
       'content_type' => $this->contentType,
       'has_headers' => $this->hasHeaders,
+      'update_if_exists' => $this->updateIfExists,
     ]));
   }
 
@@ -334,16 +352,6 @@ class ImportForm extends FormBase {
             $i++;
           }
           else {
-
-            /* Añado cabeceras provisionales */
-            if (!$this->hasHeaders && $i == 0) {
-              $temporal = [];
-              for ($contador = 1; $contador <= count($row); $contador++) {
-                $temporal[] = 'Header ' . $contador;
-              }
-              $headers[] = $temporal;
-              $i++;
-            }
 
             /* Compruebo que tipo de contenido estoy importando */
             switch ($this->contentType) {

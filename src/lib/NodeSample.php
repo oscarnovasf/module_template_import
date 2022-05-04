@@ -160,6 +160,19 @@ class NodeSample {
     return $response;
   }
 
+  /**
+   * Obtiene un array con los nombres de los campos.
+   *
+   * Estos campos se usarán como cabecera a mostrar en el formulario de
+   * confirmación en caso de no existir headers propios.
+   *
+   * @return array
+   *   Array con los nombres de los campos.
+   */
+  public static function getHeaders() {
+    return array_keys(self::CAMPOS);
+  }
+
   /* ***************************************************************************
    * MÉTODOS PRIVADOS.
    * **************************************************************************/
