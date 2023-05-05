@@ -4,15 +4,18 @@ namespace Drupal\module_template_import\lib;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\node\Entity\Node;
-use Drupal\taxonomy\Entity\Term;
 
 use Drupal\module_template_import\lib\general\ResponseFunctions;
 use Drupal\module_template_import\lib\general\ValidateFunctions;
 
+use Drupal\module_template_import\lib\base\ImportBase;
+
 /**
  * Gestiona todo lo relativo a ...
+ *
+ * Se recomienda usar nombres de clase como ArticleImporterLib.php.
  */
-class NodeSample {
+class NodeSample extends ImportBase {
 
   use StringTranslationTrait;
 
@@ -22,11 +25,17 @@ class NodeSample {
    * Contiene los campos que debería contener el CSV y su orden.
    * El primer valor deberá ser un identificador único del usuario.
    */
-  const CAMPOS = [
-    'title' => 0,
-    'body' => 1,
-    'tags' => 2,
-    'email' => 3,
+  protected const CAMPOS = [
+    'nid'         => 0,
+    'title'       => 1,
+    'body'        => 2,
+    'field_tags'  => 3,
+    'field_email' => 4,
+    'field_image' => 5,
+    'alias'       => 6,
+    'langcode'    => 7,
+    'created'     => 8,
+    'changed'     => 9,
   ];
 
   /**
@@ -35,11 +44,42 @@ class NodeSample {
    * Cada elemento del array se corresponderá con un valor del array
    * de CAMPOS.
    */
-  public const CAMPOS_OBLIGATORIOS = [
+  protected const CAMPOS_OBLIGATORIOS = [
     0,
     1,
     3,
+    7,
+    8,
+    9,
   ];
+
+  /**
+   * Contiene el nombre de máquina del contenido a crear / modificar.
+   */
+  protected const CONTENT_TYPE = 'article';
+
+  private $remoteUrl = "";
+
+  /**
+   * Nombre del archivo que se está importando.
+   *
+   * @var string
+   *   Nombre del archivo.
+   */
+  private $fileName = "";
+
+  /**
+   * Constructor de la clase.
+   *
+   * @param string $filename
+   *   Nombre del archivo que estamos importando.
+   */
+  public function __construct(string $filename) {
+    $this->fileName = $filename;
+
+    /* TODO Añadir esto a la configuración del módulo */
+    $this->remoteUrl = '';
+  }
 
   /**
    * Valida que todos los datos proporcionados sean válidos.
@@ -47,7 +87,7 @@ class NodeSample {
    * @param array $row
    *   Array con los datos a validar.
    *
-   * @return Drupal\module_template_import\lib\general\ResponseFunctions
+   * @return \Drupal\module_template_import\lib\general\ResponseFunctions
    *   Si es válido getStatus() será TRUE.
    *   Si no, en getResponse('error') tendremos la descripción de error.
    */
@@ -80,11 +120,51 @@ class NodeSample {
       /* Hago las validaciones pertinentes sobre la fila según los datos que deba tener */
       switch ($key) {
 
-        case self::CAMPOS['email']:
+        case self::CAMPOS['field_email']:
           /* Tiene que tener un formato válido */
-          if ((!ValidateFunctions::isValidEmailFormat($value)) and ($value != 'email')) {
+          if ((!ValidateFunctions::isValidEmailFormat($value))) {
             $error = [
               'error' => $key . ': El correo electrónico debe tener un formato válido.',
+            ];
+            $returnValue->setStatus(FALSE);
+            $returnValue->setResponse($error);
+          }
+          break;
+
+        case self::CAMPOS['alias']:
+          /* Si el alias es de tipo /node/XX lo elimino para no contemplarlo */
+          $re = '/\/node\/[0-9]*/m';
+          preg_match_all($re, $value, $matches, PREG_SET_ORDER, 0);
+          if ($matches) {
+            $value = '';
+          }
+          else {
+            /* Elimino idioma del path */
+            $value = str_replace('/gl/', '/', $value);
+            $value = str_replace('/es/', '/', $value);
+            $value = str_replace('/en/', '/', $value);
+          }
+          break;
+
+        case self::CAMPOS['field_image']:
+          /* Convierto la url en una url remota */
+          $value = $this->remoteUrl . $value;
+          break;
+
+        case self::CAMPOS['created']:
+          if (!is_numeric($value)) {
+            $error = [
+              'error' => $key . '-' . $value . ': La fecha de creación debe estar en formato time (numérico).',
+            ];
+            $returnValue->setStatus(FALSE);
+            $returnValue->setResponse($error);
+          }
+          break;
+
+        case self::CAMPOS['changed']:
+          if (!is_numeric($value)) {
+            $error = [
+              'error' => $key . '-' . $value . ': La fecha de última actualización debe estar en formato time (numérico).',
             ];
             $returnValue->setStatus(FALSE);
             $returnValue->setResponse($error);
@@ -106,7 +186,7 @@ class NodeSample {
    * @param bool $updateIfExist
    *   Si es TRUE se actualizan los datos en caso de existir.
    *
-   * @return Drupal\module_template_import\lib\general\ResponseFunctions
+   * @return \Drupal\module_template_import\lib\general\ResponseFunctions
    *   Si es válido getStatus() será TRUE.
    *   Si no, en getResponse('error') tendremos la descripción de error.
    */
@@ -117,44 +197,91 @@ class NodeSample {
     /* Variables auxiliares */
     $node = NULL;
 
-    /* TODO Compruebo si existe el nodo */
-    $existe = FALSE;
+    /* *************************************************************************
+     * ACTUALIZACIÓN DEL NODO (si procede).
+     * ************************************************************************/
+    if ($nid = $this->searchNodeByTitle($item[self::CAMPOS['title']],
+                                        self::CONTENT_TYPE)) {
 
-    /* TODO: Compruebo si existe el nodo */
-    if ($existe) {
-      if ($updateIfExist) {
-        /* TODO: Actualizo el nodo */
-        $node = Node::load($existe);
-        if (is_object($node)) {
+      $node = Node::load($nid);
+      if (is_object($node)) {
+        if ($updateIfExist) {
+          $node->set('created', $item[self::CAMPOS['created']]);
+          $node->save();
+
+          /* INFO: Si no se trabaja con traducciones entonces actualizar directamente el nodo. */
+          /* Compruebo que también exista la traducción */
+          if ($node->hasTranslation($item[self::CAMPOS['langcode']])) {
+            /* Actualizo la traducción */
+            $this->updateTranslation($node, $item);
+            $response->setStatus(TRUE);
+          }
+          else {
+            /* Creo la nueva traducción */
+            $this->createTranslation($node, $item);
+            $response->setStatus(TRUE);
+          }
+        }
+        else {
+          /* INFO: Si no se trabaja con traducciones entonces mostrar error directamente. */
+          /* Compruebo si es una traducción y si ésta existe */
+          if (!$node->hasTranslation($item[self::CAMPOS['langcode']])) {
+            /* Creo la traducción */
+            $this->createTranslation($node, $item);
+            $response->setStatus(TRUE);
+          }
+          else {
+            $errores = [
+              'error' => 'Nodo ya existe: ' . $item[self::CAMPOS['title']],
+            ];
+            $response->setResponse(['errores' => $errores]);
+          }
         }
       }
-    }
-    else {
-      /* Genero el nodo */
-      $node = Node::create([
-        'type' => 'article',
-        'title' => $item[self::CAMPOS['title']],
-        'body' => [
-          '#value' => $item[self::CAMPOS['body']],
-          '#format' => 'full_html',
-        ],
-        'field_email' => $item[self::CAMPOS['email']],
-      ]);
-
-      if ($item[self::CAMPOS['tags']]) {
-        /* Obtengo el id de la taxonomía */
-        $id = $this->searchTerm($item[self::CAMPOS['tags']], 'tags', TRUE);
-        $node->set('field_tags', ['target_id' => $id]);
+      else {
+        $errores = [
+          'error' => 'Error al obtener datos del nodo: ' . $item[self::CAMPOS['title']],
+        ];
+        $response->setResponse(['errores' => $errores]);
       }
     }
 
-    if (is_object($node)) {
-      $node->save();
-      $response->setStatus(TRUE);
-    }
+    /* *************************************************************************
+     * GENERACIÓN DE NODO.
+     * ************************************************************************/
     else {
-      /* TODO: Añadir info del item con error */
-      $response->setReponse(['error' => 'Error al crear el nodo']);
+      /* TODO: Genero el nodo */
+      $node = Node::create([
+        'type' => self::CONTENT_TYPE,
+        'title' => $item[self::CAMPOS['title']],
+        'body' => [
+          'value' => $this->downloadFileAndUpdateContentFromBody($this->remoteUrl, $item[self::CAMPOS['body']], self::CONTENT_TYPE),
+          'summary' => '',
+          'format' => 'full_html',
+        ],
+        'field_email' => $item[self::CAMPOS['field_email']],
+        'langcode' => $item[self::CAMPOS['langcode']],
+        'created' => $item[self::CAMPOS['created']],
+      ]);
+
+      if (is_object($node)) {
+        if ($item[self::CAMPOS['alias']]) {
+          $this->createOrUpdateAlias($item[self::CAMPOS['alias']],
+                                     "/node/" . $node->id(),
+                                     $item[self::CAMPOS['langcode']]);
+        }
+        $node->save();
+
+        /* Genero campos que dependen de que el nodo exista */
+        $this->saveOtherElements($node, $item);
+        $response->setStatus(TRUE);
+      }
+      else {
+        $errores = [
+          'error' => 'Error al crear el nodo: ' . $item[self::CAMPOS['title']],
+        ];
+        $response->setResponse(['errores' => $errores]);
+      }
     }
 
     return $response;
@@ -178,68 +305,125 @@ class NodeSample {
    * **************************************************************************/
 
   /**
-   * Obtiene el id de la taxonomía a partir del nombre y el tipo.
+   * Realiza el guardado de los elementos que necesitan que el nodo exista.
    *
-   * Esta función, en caso de no encontrar nada, crea un nuevo término.
+   * @param \Drupal\node\Entity\Node $node
+   *   Nodo.
+   * @param array $item
+   *   Array con los datos a almacenar.
    *
-   * @param string $name
-   *   Nombre que buscamos.
-   * @param string $vid
-   *   Nombre de la taxonomía dónde se buscará.
-   * @param bool $create_new
-   *   Si el valor es TRUE, creará un término nuevo en caso de no encontrarlo.
-   *
-   * @return int|null
-   *   Id de la taxonomía o NULL si no la encuentra y se establece que no se
-   *   cree una nueva.
+   * @SuppressWarnings("CyclomaticComplexity")
    */
-  private function searchTerm(string $name, string $vid, bool $create_new = TRUE) {
-    /* Variable de retorno */
-    $respuesta = NULL;
-
-    $terms = \Drupal::entityTypeManager()
-      ->getStorage('taxonomy_term')
-      ->loadByProperties(['name' => $name, 'vid' => $vid]);
-
-    foreach ($terms as $term) {
-      $respuesta = $term->id();
+  private function saveOtherElements(Node $node, array $item) {
+    /* Imágenes */
+    $img_url = $item[self::CAMPOS['field_image']];
+    if ($img_url) {
+      /* Intento la descarga de la imagen */
+      $img_id = $this->downloadFile($img_url, self::CONTENT_TYPE, FALSE);
+      if ($img_id) {
+        $node->set('field_image', [
+          'target_id' => $img_id,
+          'alt' => '',
+        ]);
+      }
+      else {
+        $header = "No se ha podido descargar la imagen: $img_url";
+        $this->generateLog($item, $this->fileName, $header);
+      }
     }
 
-    if (!$respuesta && $create_new) {
-      /* Creo un nuevo término */
-      $term = Term::create([
-        'name' => $name,
-        'vid' => $vid,
-      ]);
-      $term->save();
-
-      $respuesta = $term->id();
+    /* Categorías */
+    $cat = $item[self::CAMPOS['field_tags']];
+    if ($cat) {
+      /* Obtengo el id de la taxonomía */
+      $id = $this->searchTermByName($cat, 'tags', TRUE);
+      if ($id) {
+        $node->set('field_tags', ['target_id' => $id]);
+      }
+      else {
+        $header = "No se ha podido crear/encontrar la categoría $cat";
+        $this->generateLog($item, $this->fileName, $header);
+      }
     }
 
-    return $respuesta;
+    /* Genero alias */
+    if ($item[self::CAMPOS['alias']]) {
+      $this->createOrUpdateAlias($item[self::CAMPOS['alias']],
+                                 "/node/" . $node->id(),
+                                 $item[self::CAMPOS['langcode']]);
+    }
+
+    /* Añado la fecha de última modificación */
+    $node->set('changed', $item[self::CAMPOS['changed']]);
+    $node->save();
+
+    $node->save();
   }
 
   /**
-   * Comprueba si el nodo ya ha sido creado previamente.
+   * Crea una nueva traducción para el nodo.
    *
-   * @param string $title
-   *   Título del nodo para verificar.
-   * @param string $type
-   *   Tipo de nodo.
-   *
-   * @return bool|int
-   *   FALSE si no existe y el nid en caso de existir.
+   * @param \Drupal\node\Entity\Node $node
+   *   Nodo.
+   * @param array $item
+   *   Array con los datos a almacenar.
    */
-  private function searchNodeByTitle(string $title, string $type) {
-    $nodes = \Drupal::entityTypeManager()
-      ->getStorage('node')
-      ->loadByProperties([
-        'type' => $type,
-        'title' => $title,
-      ]);
+  private function createTranslation(Node $node, array $item) {
+    /* Genero traducción y asigno título */
+    $node_translation = $node->addTranslation($item[self::CAMPOS['langcode']]);
+    $this->changeTranslation($node_translation, $item);
+  }
 
-    $nodes = reset($nodes);
-    return empty($nodes) ? FALSE : $nodes->id();
+  /**
+   * Actualiza la traducción para el nodo.
+   *
+   * @param \Drupal\node\Entity\Node $node
+   *   Nodo.
+   * @param array $item
+   *   Array con los datos a almacenar.
+   */
+  private function updateTranslation(Node $node, array $item) {
+    /* Genero traducción y asigno título */
+    $node_translation = $node->getTranslation($item[self::CAMPOS['langcode']]);
+    $this->changeTranslation($node_translation, $item);
+  }
+
+  /**
+   * Actualiza los campos traducibles del nodo.
+   *
+   * @param \Drupal\node\Entity\Node $node_translation
+   *   Nodo.
+   * @param array $item
+   *   Array con los datos a almacenar.
+   */
+  private function changeTranslation(Node $node_translation, array $item) {
+    $node_translation->setTitle($item[self::CAMPOS['title']]);
+
+    /* Valido campos traducibles */
+    $node_translation_fields = $node_translation->getTranslatableFields();
+    foreach ($node_translation_fields as $name => $field) {
+      if ('body' == $name) {
+        $node_translation->set('body', [
+          'value' => $this->downloadFileAndUpdateContentFromBody($this->remoteUrl, $item[self::CAMPOS['body']], self::CONTENT_TYPE),
+          'summary' => $item[self::CAMPOS['body_resume']],
+          'format' => 'full_html',
+        ]);
+      }
+
+      if ('alias' == $name) {
+        /* Genero alias */
+        if ($item[self::CAMPOS['alias']]) {
+          $this->createOrUpdateAlias($item[self::CAMPOS['alias']],
+                                     "/node/" . $node_translation->id(),
+                                     $item[self::CAMPOS['langcode']]);
+        }
+      }
+    }
+
+    $node_translation->save();
+
+    /* TODO: Para estos elementos es necesario verificar si son traducibles también */
+    // $this->saveOtherElements($node_translation, $item);
   }
 
 }

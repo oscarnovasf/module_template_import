@@ -20,11 +20,19 @@ custom_module.module_template_import.admin:
   route_name: custom_module.module_template_import.admin
   parent: custom_module.global.admin
 
+# Formulario de configuración.
+module_template_import.settings:
+  title: Settings
+  description: 'Global settings for module_template_import_name'
+  route_name: module_template_import.settings
+  parent: custom_module.module_template_import.admin
+
 ################################################################################
 # FORMULARIOS DE IMPORTACIÓN                                                   #
 ################################################################################
 
-custom_module.module_template_import.import_data:
-  title: 'Import data form'
-  route_name: custom_module.module_template_import.import_data
+# Formulario de importación a partir de un archivo.
+module_template_import.import_from_file:
+  title: 'Import from file'
+  route_name: module_template_import.import_from_file
   parent: custom_module.module_template_import.admin

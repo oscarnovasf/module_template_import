@@ -1,7 +1,7 @@
 # Datos del módulo
 name: 'module_template_import_name'
 description: 'module_template_import_name - Functionalities'
-project: 'module_template_import'
+# project: 'module_template_import'
 
 # Datos de la versión
 package: Migration
@@ -11,13 +11,18 @@ version: '1.0.0'
 # Tema
 base theme: false
 
+# Configuración
+configure: module_template_import.settings
+
 # Dependencias
 dependencies:
   - node
   - user
 
 # Requisitos
-core_version_requirement: ^8.8 || ^9
+core_version_requirement: ^8.8 || ^9 || ^10
+requirements:
+  _permission: 'config module_template_import'
 
 # Traducciones
 'interface translation project': module_template_import

@@ -16,6 +16,14 @@ use Drupal\module_template_import\lib\general\StringFunctions;
 class ConfirmForm extends ConfirmFormBase {
 
   /**
+   * Namespace de las librerías.
+   *
+   * @var string
+   *   Namespace de las librerías (sin el nombre de la librería).
+   */
+  private $libNameSpace = "\\Drupal\\module_template_import\\lib\\";
+
+  /**
    * Se le asigna valor en la validación y si los campos cumplen criterios.
    *
    * @var array|bool
@@ -42,12 +50,28 @@ class ConfirmForm extends ConfirmFormBase {
   protected $fileExtension = "";
 
   /**
+   * Nombre del archivo a importar, se obtiene en la validación.
+   *
+   * @var string
+   *   Nombre del archivo que vamos a importar.
+   */
+  private $fileName = "";
+
+  /**
    * Tipo de contenido a importar, se obtiene en la validación.
    *
    * @var string
    *   Nombre del contenido a importar.
    */
   protected $contentType = "";
+
+  /**
+   * Clase del contenido a importar, se obtiene en la validación.
+   *
+   * @var string
+   *   Clase del contenido a importar.
+   */
+  private $contentClass = "";
 
   /**
    * Indica si el archivo tiene cabeceras o no.
@@ -78,27 +102,47 @@ class ConfirmForm extends ConfirmFormBase {
   public function buildForm(array $form,
                             FormStateInterface $form_state,
                             string $content_type = NULL,
+                            string $filename = NULL,
                             bool $has_headers = TRUE,
-                            bool $update_if_exists = TRUE) {
+                            bool $update_if_exists = TRUE,
+                            string $content_class = NULL) {
 
     /* Primero genero el formulario por defecto */
     $form = parent::buildForm($form, $form_state);
 
     /* Obtengo el array con los datos pasados por post */
-    $tempstore = \Drupal::service('tempstore.private')->get('module_template_import');
-    $this->arrayImportData = $tempstore->get('array_import_data');
-    $this->arrayHeadersData = $tempstore->get('array_headers_data');
+    $temp_store = \Drupal::service('tempstore.private')->get('module_template_import');
+    $this->arrayImportData = $temp_store->get('array_import_from_file');
+    $this->arrayHeadersData = $temp_store->get('array_headers_data');
 
     /* Obtengo el contenido con el que tengo que trabajar */
     $this->contentType = $content_type;
     $this->hasHeaders = $has_headers;
     $this->updateIfExists = $update_if_exists;
+    $this->contentClass = $content_class;
+    $this->fileName = $filename;
 
     $form['header'] = [
-      '#markup' => $this->t('<h1>Content to import: @content_type</h1>', [
+      '#type' => 'container',
+      '#weight' => 1,
+    ];
+
+    $form['header']['type'] = [
+      '#markup' => $this->t('<h2>Selected type: @content_type</h2>', [
         '@content_type' => $content_type,
       ]),
-      '#weight' => 1,
+    ];
+
+    $form['header']['controller'] = [
+      '#markup' => $this->t('<h3>Controller: @content_class</h3>', [
+        '@content_class' => $content_class,
+      ]),
+    ];
+
+    $form['header']['filename'] = [
+      '#markup' => $this->t('<h3>File: @filename</h3>', [
+        '@filename' => $filename,
+      ]),
     ];
 
     /* Recorto los campos a 200 caracteres */
@@ -110,15 +154,10 @@ class ConfirmForm extends ConfirmFormBase {
     }
 
     /* Crear encabezados si estos no existen */
-    switch ($this->contentType) {
-
-      case 'articles':
-        if (!$this->hasHeaders) {
-          $this->arrayHeadersData = [NodeSample::getHeaders()];
-          $tempstore->set('array_headers_data', $this->arrayHeadersData);
-        }
-        break;
-
+    if (!$this->hasHeaders) {
+      $clase = $this->contentClass;
+      $this->arrayHeadersData = [$clase::getHeaders()];
+      $temp_store->set('array_headers_data', $this->arrayHeadersData);
     }
 
     $form['content'] = [
@@ -153,20 +192,12 @@ class ConfirmForm extends ConfirmFormBase {
     /* Recorro el array y voy importando línea por línea */
     foreach ($this->arrayImportData as $row) {
 
-      /* Compruebo que tipo de contenido estoy importando */
-      switch ($this->contentType) {
+      $library = $this->libNameSpace . $this->contentClass;
 
-        case 'articles':
-          $operations[] = [
-            'Drupal\module_template_import\Controller\NodeSampleController::addItem',
-            [$row, $this->updateIfExists],
-          ];
-          break;
-
-        default:
-          \Drupal::messenger()->addWarning($this->t('We have not received all the parameters.'));
-
-      }
+      $operations[] = [
+        'Drupal\module_template_import\Controller\GeneralController::addItem',
+        [$row, $this->updateIfExists, $library, $this->fileName],
+      ];
     }
 
     if (!empty($operations)) {
@@ -190,7 +221,7 @@ class ConfirmForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getCancelUrl() {
-    return Url::fromRoute("custom_module.module_template_import.import_data", []);
+    return Url::fromRoute("module_template_import.import_from_file", []);
   }
 
   /**
@@ -216,8 +247,6 @@ class ConfirmForm extends ConfirmFormBase {
    * ************************************************************************ */
 
   /**
-   * Función returnToCallerPage().
-   *
    * Devuelve una redirección a la página que llamó al procedimiento.
    *
    * @return Symfony\Component\HttpFoundation\RedirectResponse
@@ -229,6 +258,8 @@ class ConfirmForm extends ConfirmFormBase {
 
   /**
    * Recorta todos los datos de cada elemento para su visualización.
+   *
+   * @SuppressWarnings("unused")
    */
   private function truncate(&$elemento, $clave) {
     /* Recorto el valor del title */

@@ -6,6 +6,24 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
   > Ver TODO.md
 
 ---
+* ## [v2.1.0] - 2023-05-05
+  > Revisión.
+
+  * #### Añadido:
+    - Librería ImportBase para unificar funciones que podrían repetirse en
+      los diferentes tipos de contenido.
+    - Formulario de configuración del módulo.
+    - Soporte para Drupal 10.
+    - Fecha de actualización y creación al ejemplo de importación.
+
+  * #### Cambios:
+    - Refactor de clases y controladores para facilitar la creación de nuevos
+      importadores.
+    - Mejora en la gestión de errores del ejemplo con Nodos.
+    - Ajuste de permisos.
+    - Ajuste de rutas.
+
+---
 * ## [v2.0.1] - 2022-05-04
   > Revisión.
 

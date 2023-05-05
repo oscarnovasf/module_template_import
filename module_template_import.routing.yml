@@ -26,35 +26,52 @@ custom_module.module_template_import.admin:
   options:
     _admin_route: TRUE
   requirements:
-    _permission: 'my custom migrate import data'
+    _permission: 'allow import data from file'
 
 ################################################################################
 # FORMULARIOS                                                                  #
 ################################################################################
 
+# Ruta para el formulario de configuración.
+module_template_import.settings:
+  path: '/admin/custom_modules/module_template_import/settings'
+  defaults:
+    _form: '\Drupal\module_template_import\Form\config\SettingsForm'
+    _title: 'Settings'
+  requirements:
+    _permission: 'config module_template_import'
+  options:
+    no_cache: 'TRUE'
+
 # Formulario de importación de datos.
-custom_module.module_template_import.import_data:
+module_template_import.import_from_file:
   path: '/admin/custom_modules/module_template_import/import-data'
   defaults:
     _form: 'Drupal\module_template_import\Form\ImportForm'
-    _title: 'Import Form'
+    _title: 'Import Form (from file)'
   requirements:
-    _permission: 'my custom migrate import data'
+    _permission: 'allow import data from file'
   options:
     no_cache: 'TRUE'
 
 # Formulario de confirmación.
 custom_module.module_template_import.confirm_form:
-  path: '/admin/custom_modules/module_template_import/import-data/confirm/{content_type}/{has_headers}'
+  path: '/admin/custom_modules/module_template_import/import-data/confirm/{content_type}/{filename}/{has_headers}/{update_if_exists}/{content_class}'
   defaults:
     _form: '\Drupal\module_template_import\Form\ConfirmForm'
     _title: 'Confirm import data'
   requirements:
-    _permission: 'my custom migrate import data'
+    _permission: 'allow import data from file'
   options:
     no_cache: 'TRUE'
     parameters:
       content_type:
         type: string
+      filename:
+        type: string
       has_headers:
         type: bool
+      update_if_exists:
+        type: bool
+      content_class:
+        type: string

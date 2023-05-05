@@ -2,7 +2,12 @@
 # CONFIGURACIÓN DEL MÓDULO                                                     #
 ################################################################################
 
+# Configuración general
+config module_template_import:
+  title: 'module_template_import_name'
+  description: 'Allow users to access module_template_import_name Config.'
+
 # Usar el formulario de importación de datos
-my custom migrate import data:
+allow import data from file:
   title: 'module_template_import_name - Import data'
-  description: 'Allow users to use import data forms.'
+  description: 'Allow users to use import data from files.'

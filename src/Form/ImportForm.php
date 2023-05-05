@@ -13,8 +13,6 @@ use Drupal\Core\Url;
 use Drupal\module_template_import\lib\general\FileFunctions;
 use Drupal\module_template_import\lib\general\ResponseFunctions;
 
-use Drupal\module_template_import\lib\NodeSample;
-
 /**
  * Formulario para importación de datos.
  */
@@ -47,12 +45,40 @@ class ImportForm extends FormBase {
   private $fileExtension = "";
 
   /**
+   * Nombre del archivo a importar, se obtiene en la validación.
+   *
+   * @var string
+   *   Nombre del archivo que vamos a importar.
+   */
+  private $fileName = "";
+
+  /**
    * Tipo de contenido a importar, se obtiene en la validación.
    *
    * @var string
    *   Nombre del contenido a importar.
    */
   private $contentType = "";
+
+  /**
+   * Namespace de las librerías.
+   *
+   * @var string
+   *   Namespace de las librerías (sin el nombre de la librería).
+   */
+  private $libNameSpace = "\\Drupal\\module_template_import\\lib\\";
+
+  /**
+   * Define las diferentes clases según el tipo de contenido a importar.
+   *
+   * @var array
+   *   Listado de clases disponibles.
+   *
+   * @todo RELLENAR TODAS LAS CLASES QUE SE USARÁN.
+   */
+  private $contentTypeClasses = [
+    'articles' => '\\Drupal\\module_template_import\\lib\\NodeSample',
+  ];
 
   /**
    * Indica si el archivo tiene cabeceras o no.
@@ -80,13 +106,6 @@ class ImportForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  protected function getEditableConfigNames() {
-    return ['module_template_import_import_form.config'];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function buildForm(array $form, FormStateInterface $form_state) {
 
     /*
@@ -98,6 +117,9 @@ class ImportForm extends FormBase {
       'csv-users' => $this->t('Users'),
       'csv-articles' => $this->t('Articles'),
     ];
+
+    /* Usamos la key del array $options para establecer un valor por defecto */
+    $default_option = '';
 
     $form['#attributes'] = [
       'class' => 'my-custom-migrate-import-form',
@@ -114,7 +136,7 @@ class ImportForm extends FormBase {
       '#options' => $options,
       '#empty_option' => '-- Vacío --',
       '#empty_value' => '_none',
-      '#default_value' => '',
+      '#default_value' => $default_option,
       '#attributes' => [
         'attr-name' => 'content_type_select',
       ],
@@ -184,6 +206,10 @@ class ImportForm extends FormBase {
       /* Leo lo que quiero importar */
       $aux = $form_state->getValue('content_type_select');
 
+      /* Obtengo el nombre del fichero */
+      $filename = $file->getFilename();
+      $this->fileName = substr($filename, 0, strlen($filename) - 4);
+
       /* Obtengo el tipo de archivo que necesito y lo que quiero importar */
       $this->fileExtension = substr($aux, 0, 3);
       $this->contentType = substr($aux, 4, strlen($aux) - 4);
@@ -203,7 +229,7 @@ class ImportForm extends FormBase {
 
         if (FALSE == $resultado->getStatus()) {
           /* El archivo no cumple los parámetros => Creo un archivo con los errores que se han producido en la validación */
-          $file_path = drupal_get_path('module', "module_template_import") . "/logs/validate_" . date('Y-m-d') . '_' . \Drupal::currentUser()->id() . '.log';
+          $file_path = \Drupal::service('extension.path.resolver')->getPath('module', "module_template_import") . "/logs/validate_" . date('Y-m-d') . '_' . \Drupal::currentUser()->id() . '.log';
           FileFunctions::createFileLog($file_path, $resultado->getResponse('errores'));
           $urlError = "<a href='/$file_path' target='_blank'>Ver log</a>";
 
@@ -240,15 +266,20 @@ class ImportForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
     /* Almaceno el array con los datos en una variable de sesión */
-    $tempstore = \Drupal::service('tempstore.private')->get('module_template_import');
-    $tempstore->set('array_import_data', $this->arrayImportData);
-    $tempstore->set('array_headers_data', $this->arrayHeadersData);
+    $temp_store = \Drupal::service('tempstore.private')->get('module_template_import');
+    $temp_store->set('array_import_from_file', $this->arrayImportData);
+    $temp_store->set('array_headers_data', $this->arrayHeadersData);
+
+    /* Limpio el nombre de la clase porque me da problemas en entorno de pruebas Windows */
+    $content_class = str_replace($this->libNameSpace, "", $this->contentTypeClasses[$this->contentType]);
 
     /* Redirecciono al formulario de confirmación */
     $form_state->setRedirectUrl(Url::fromRoute("custom_module.module_template_import.confirm_form", [
       'content_type' => $this->contentType,
+      'filename' => $this->fileName,
       'has_headers' => $this->hasHeaders,
       'update_if_exists' => $this->updateIfExists,
+      'content_class' => $content_class,
     ]));
   }
 
@@ -257,7 +288,7 @@ class ImportForm extends FormBase {
    * ************************************************************************ */
 
   /**
-   * Función generateArray().
+   * Obtención de datos desde el fichero.
    *
    * Genera un array con los datos necesarios para la importación.
    * IMPORTANTE: NO REALIZAR NINGUNA DESCARGA DE ARCHIVOS EN ESTA FUNCIÓN. Si se
@@ -277,8 +308,49 @@ class ImportForm extends FormBase {
     /* Variable de retorno */
     $returnValue = new ResponseFunctions();
 
+    /* Crear la ruta completa al archivo */
+    $filePath = "public://temporal/$filename";
+
+    /* Generación de datos según el tipo de archivo */
+    if ($this->fileExtension == 'csv') {
+      $returnValue = $this->generateFromCsv($filePath);
+    }
+    elseif ($this->fileExtension == 'yml') {
+      $returnValue = $this->generateFromYml($filePath);
+    }
+
+    return $returnValue;
+  }
+
+  /**
+   * Obtención de datos desde el fichero CSV.
+   *
+   * Genera un array con los datos necesarios para la importación.
+   * IMPORTANTE: NO REALIZAR NINGUNA DESCARGA DE ARCHIVOS EN ESTA FUNCIÓN. Si se
+   * hace con archivos largos puede causar error de TimeOut. Mejor realizar las
+   * descargas dentro del proceso batch.
+   *
+   * @param string $file_path
+   *   Ruta al archivo a convertir en Array.
+   *
+   * @return Drupal\module_template_import\lib\general\ResponseFunctions
+   *   Si el valor de status es TRUE devolverá el archivo preparado para
+   *   su importación.
+   *   Si el valor de status es FALSE devolverá un array con los errores
+   *   encontrados.
+   */
+  private function generateFromCsv(string $file_path) {
+    /* Variable de retorno */
+    $returnValue = new ResponseFunctions();
+
     /* Corrección de los archivos con BOM */
     $bom = pack("CCC", 0xEF, 0xBB, 0xBF);
+
+    /* Obtengo datos de configuración del módulo */
+    $config = \Drupal::configFactory()->getEditable('custom_module.module_template_import.settings');
+    $delimiter = $config->get('delimiter') ?? ';';
+    $enclosure = $config->get('enclosure') ?? '"';
+    $escape = $config->get('escape') ?? '\\';
 
     /* Variables para los datos */
     $newFileData = [];
@@ -286,106 +358,115 @@ class ImportForm extends FormBase {
     $errores = [];
     $numFila = 0;
 
-    /* Crear la ruta completa al archivo */
-    $filePath = "public://temporal/$filename";
+    /* Obtengo la clase según el tipo de contenido */
+    $clase = $this->contentTypeClasses[$this->contentType];
 
-    /* *************************************************************************
-     * Archivo es un YML.
-     * ********************************************************************** */
-    if ($this->fileExtension == 'yml') {
+    /* Leo el contenido del archivo */
+    $file_csv = FileFunctions::readFile($file_path, ["csv"]);
 
-      /* Leo el contenido del archivo */
-      $fileYML = Yaml::decode(file_get_contents($filePath));
+    if ($file_csv) {
+      /* Leo el fichero */
+      $i = 0;
+      while ($row = fgetcsv($file_csv, 0, $delimiter, $enclosure, $escape)) {
 
-      if ($fileYML) {
-        /* Leo el fichero */
-        foreach ($fileYML as $row) {
+        /* Corrijo el BOM del primer elemento */
+        $row[0] = str_replace($bom, '', $row[0]);
 
-          /* Compruebo que tipo de contenido estoy importando */
-          switch ($this->contentType) {
-
-            case 'users':
-              /* INFO Hacer estas comprobaciones en un archivo propio del tipo de contenido */
-              /* Reparo algunos datos que vienen mal de origen */
-              /* Hago las validaciones pertinentes sobre la fila según los datos que deba tener */
-              /* Compruebo si el campo actual es obligatorio y por lo tanto debe tener datos */
-              /* También puedo agregar algún campo nuevo */
-              break;
-          }
-
-          /* Almaceno los cambios para luego devolverlos la función */
-          $newFileData[] = trim($row);
-        }
-
-        if (is_empty($errores)) {
-          $returnValue->setStatus(TRUE);
-          $respuesta['datos'] = $newFileData;
-          $respuesta['headers'] = $headers;
-          $returnValue->setResponse($respuesta);
+        /* Si tiene encabezados me salto la primera línea */
+        if ($this->hasHeaders && $i == 0) {
+          $headers[] = $row;
+          $i++;
         }
         else {
-          $respuesta['errores'] = $errores;
-          $returnValue->setResponse($respuesta);
+          /* Validación de datos */
+          $importador = new $clase($this->fileName);
+          $error = $importador->validateData($row);
+          if (FALSE == $error->getStatus()) {
+            $errores[] = [
+              'numFila' => $numFila,
+              'error' => $error->getResponse('error'),
+            ];
+          }
+          $numFila++;
+
+          /* Almaceno los cambios para luego devolverlos la función */
+          $newFileData[] = $row;
         }
+      }
+
+      if (empty($errores)) {
+        $returnValue->setStatus(TRUE);
+        $respuesta['datos'] = $newFileData;
+        $respuesta['headers'] = $headers;
+        $returnValue->setResponse($respuesta);
+      }
+      else {
+        $respuesta['errores'] = $errores;
+        $returnValue->setResponse($respuesta);
       }
     }
 
-    /* *************************************************************************
-     * Archivo es un CSV.
-     * ********************************************************************** */
-    elseif ($this->fileExtension == 'csv') {
+    return $returnValue;
+  }
 
-      /* Leo el contenido del archivo */
-      $fileCSV = FileFunctions::readFile($filePath, ["csv"]);
+  /**
+   * Obtención de datos desde el fichero YML.
+   *
+   * Genera un array con los datos necesarios para la importación.
+   * IMPORTANTE: NO REALIZAR NINGUNA DESCARGA DE ARCHIVOS EN ESTA FUNCIÓN. Si se
+   * hace con archivos largos puede causar error de TimeOut. Mejor realizar las
+   * descargas dentro del proceso batch.
+   *
+   * @param string $file_path
+   *   Ruta al archivo a convertir en Array.
+   *
+   * @return Drupal\module_template_import\lib\general\ResponseFunctions
+   *   Si el valor de status es TRUE devolverá el archivo preparado para
+   *   su importación.
+   *   Si el valor de status es FALSE devolverá un array con los errores
+   *   encontrados.
+   */
+  private function generateFromYml(string $file_path) {
+    /* Variable de retorno */
+    $returnValue = new ResponseFunctions();
 
-      if ($fileCSV) {
-        /* Leo el fichero */
-        $i = 0;
-        while ($row = fgetcsv($fileCSV, 0, ';')) {
+    /* Variables para los datos */
+    $newFileData = [];
+    $headers = [];
+    $errores = [];
 
-          /* Corrijo el BOM del primer elemento */
-          $row[0] = str_replace($bom, '', $row[0]);
+    /* Leo el contenido del archivo */
+    $file_yml = Yaml::decode(file_get_contents($file_path));
 
-          /* Si tiene encabezados me salto la primera línea */
-          if ($this->hasHeaders && $i == 0) {
-            $headers[] = $row;
-            $i++;
-          }
-          else {
+    if ($file_yml) {
+      /* Leo el fichero */
+      foreach ($file_yml as $row) {
 
-            /* Compruebo que tipo de contenido estoy importando */
-            switch ($this->contentType) {
+        /* Compruebo que tipo de contenido estoy importando */
+        switch ($this->contentType) {
 
-              case 'users':
-                $user = new NodeSample();
-                $error = $user->validateData($row);
-                if (FALSE == $error->getStatus()) {
-                  $errores[] = [
-                    'numFila' => $numFila,
-                    'error' => $error->getResponse('error'),
-                  ];
-                }
-                $numFila++;
-                break;
-            }
-
-            /* INFO: Aquí puedo añadir nuevos campos al CSV (en la fila) */
-
-            /* Almaceno los cambios para luego devolverlos la función */
-            $newFileData[] = $row;
-          }
+          case 'articles':
+            /* INFO Hacer estas comprobaciones en un archivo propio del tipo de contenido */
+            /* Reparo algunos datos que vienen mal de origen */
+            /* Hago las validaciones pertinentes sobre la fila según los datos que deba tener */
+            /* Compruebo si el campo actual es obligatorio y por lo tanto debe tener datos */
+            /* También puedo agregar algún campo nuevo */
+            break;
         }
 
-        if (empty($errores)) {
-          $returnValue->setStatus(TRUE);
-          $respuesta['datos'] = $newFileData;
-          $respuesta['headers'] = $headers;
-          $returnValue->setResponse($respuesta);
-        }
-        else {
-          $respuesta['errores'] = $errores;
-          $returnValue->setResponse($respuesta);
-        }
+        /* Almaceno los cambios para luego devolverlos la función */
+        $newFileData[] = trim($row);
+      }
+
+      if (empty($errores)) {
+        $returnValue->setStatus(TRUE);
+        $respuesta['datos'] = $newFileData;
+        $respuesta['headers'] = $headers;
+        $returnValue->setResponse($respuesta);
+      }
+      else {
+        $respuesta['errores'] = $errores;
+        $returnValue->setResponse($respuesta);
       }
     }
 

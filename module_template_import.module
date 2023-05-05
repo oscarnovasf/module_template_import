@@ -20,7 +20,8 @@ function module_template_import_help($route_name, RouteMatchInterface $route_mat
       /* Añado el contenido del archivo README.md a la ayuda del módulo */
       $parser = new MarkdownParser();
 
-      $module_path = drupal_get_path('module', "module_template_import");
+      $module_path = \Drupal::service('extension.path.resolver')
+        ->getPath('module', "module_template_import");
 
       $readme_ruta = $module_path . "/README.md";
       $contenido = '';

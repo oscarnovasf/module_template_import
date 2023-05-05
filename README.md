@@ -31,7 +31,7 @@ se incluye pero se podrá encontrar en un futuro en otro de mis repositorios.
 
 [mi-web]: https://oscarnovas.com "for developers"
 
-[version]: v2.0.1
+[version]: v2.1.0
 [version-badge]: https://img.shields.io/badge/Versión-2.0.1-blue.svg
 
 [license]: LICENSE.md
