@@ -6,6 +6,13 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
   > Ver TODO.md
 
 ---
+* ## [v2.1.1] - 2023-05-19
+  > Revisión.
+
+  * #### Cambios:
+    - Mejora de la documentación.
+
+---
 * ## [v2.1.0] - 2023-05-05
   > Revisión.
 
