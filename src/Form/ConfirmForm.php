@@ -5,8 +5,10 @@ namespace Drupal\module_template_import\Form;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\Core\TempStore\PrivateTempStoreFactory;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Drupal\module_template_import\lib\general\StringFunctions;
 
@@ -21,7 +23,7 @@ class ConfirmForm extends ConfirmFormBase {
    * @var string
    *   Namespace de las librerías (sin el nombre de la librería).
    */
-  private $libNameSpace = "\\Drupal\\module_template_import\\lib\\";
+  private $libNameSpace = "\\Drupal\\module_template_import\\lib\\handlers\\";
 
   /**
    * Se le asigna valor en la validación y si los campos cumplen criterios.
@@ -90,6 +92,32 @@ class ConfirmForm extends ConfirmFormBase {
   private $updateIfExists = FALSE;
 
   /**
+   * Temp Store.
+   *
+   * @var \Drupal\Core\TempStore\PrivateTempStoreFactory
+   */
+  protected $privateTempStore;
+
+  /**
+   * Constructor para añadir dependencias.
+   *
+   * @param \Drupal\Core\TempStore\PrivateTempStoreFactory $temp_store
+   *   Temp Store.
+   */
+  public function __construct(PrivateTempStoreFactory $temp_store) {
+    $this->privateTempStore = $temp_store;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('tempstore.private'),
+    );
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function getFormId() : string {
@@ -111,7 +139,7 @@ class ConfirmForm extends ConfirmFormBase {
     $form = parent::buildForm($form, $form_state);
 
     /* Obtengo el array con los datos pasados por post */
-    $temp_store = \Drupal::service('tempstore.private')->get('module_template_import');
+    $temp_store = $this->privateTempStore->get('module_template_import');
     $this->arrayImportData = $temp_store->get('array_import_from_file');
     $this->arrayHeadersData = $temp_store->get('array_headers_data');
 
@@ -212,7 +240,7 @@ class ConfirmForm extends ConfirmFormBase {
     }
     else {
       /* Mostrar mensaje de ninguna operación a realizar. */
-      \Drupal::messenger()->addWarning($this->t('No data found'));
+      $this->messenger()->addWarning($this->t('No data found'));
       return $this->returnToCallerPage()->send();
     }
   }

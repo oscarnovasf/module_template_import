@@ -9,6 +9,6 @@
     },
 
     "require-dev": {
-        "drupal/potx": "^1.0@alpha"
+        "drupal/potx": "^1.0"
     }
 }

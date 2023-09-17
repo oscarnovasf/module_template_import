@@ -9,6 +9,12 @@ use Drupal\file\Entity\File;
 use Drupal\Component\Serialization\Yaml;
 
 use Drupal\Core\Url;
+use Drupal\Core\Extension\ExtensionPathResolver;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Session\AccountProxyInterface;
+use Drupal\Core\TempStore\PrivateTempStoreFactory;
+
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Drupal\module_template_import\lib\general\FileFunctions;
 use Drupal\module_template_import\lib\general\ResponseFunctions;
@@ -66,7 +72,7 @@ class ImportForm extends FormBase {
    * @var string
    *   Namespace de las librerías (sin el nombre de la librería).
    */
-  private $libNameSpace = "\\Drupal\\module_template_import\\lib\\";
+  private $libNameSpace = "\\Drupal\\module_template_import\\lib\\handlers\\";
 
   /**
    * Define las diferentes clases según el tipo de contenido a importar.
@@ -77,7 +83,7 @@ class ImportForm extends FormBase {
    * @todo RELLENAR TODAS LAS CLASES QUE SE USARÁN.
    */
   private $contentTypeClasses = [
-    'articles' => '\\Drupal\\module_template_import\\lib\\NodeSample',
+    'articles' => '\\Drupal\\module_template_import\\lib\\handlers\\NodeSampleHandler',
   ];
 
   /**
@@ -95,6 +101,75 @@ class ImportForm extends FormBase {
    *   TRUE si tiene que actualizarse.
    */
   private $updateIfExists = FALSE;
+
+  /**
+   * @var \Drupal\Core\Extension\ExtensionPathResolver
+   */
+  protected $pathResolver;
+
+  /**
+   * The config factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
+
+  /**
+   * The module configuration.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected $config;
+
+  /**
+   * Current user.
+   *
+   * @var |Drupal\Core\Session\AccountProxyInterface
+   */
+  protected $currentUser;
+
+  /**
+   * Temp Store.
+   *
+   * @var \Drupal\Core\TempStore\PrivateTempStoreFactory
+   */
+  protected $privateTempStore;
+
+  /**
+   * Constructor para añadir dependencias.
+   *
+   * @param \Drupal\Core\Extension\ExtensionPathResolver $path_resolver
+   *   Servicio PathResolver.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory.
+   * @param \Drupal\Core\Session\AccountProxyInterface $current_user
+   *   Current user.
+   * @param \Drupal\Core\TempStore\PrivateTempStoreFactory $temp_store
+   *   Temp Store.
+   */
+  public function __construct(ExtensionPathResolver $path_resolver,
+                              ConfigFactoryInterface $config_factory,
+                              AccountProxyInterface $current_user,
+                              PrivateTempStoreFactory $temp_store) {
+    $this->pathResolver = $path_resolver;
+    $this->configFactory = $config_factory;
+    $this->currentUser = $current_user;
+    $this->privateTempStore = $temp_store;
+
+    $this->config = $this->configFactory->get('custom_module.module_template_import.settings');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('extension.path.resolver'),
+      $container->get('config.factory'),
+      $container->get('current_user'),
+      $container->get('tempstore.private'),
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -188,6 +263,9 @@ class ImportForm extends FormBase {
 
     parent::validateForm($form, $form_state);
 
+    $module_path = $this->pathResolver
+      ->getPath('module', "module_template_import");
+
     /* Almaceno el valor de si tiene encabezados */
     $this->hasHeaders = $form_state->getValue('has_headers');
 
@@ -201,7 +279,7 @@ class ImportForm extends FormBase {
       /* Leo el archivo a partir de su fid */
       $file = File::load($import_file[0]);
       $file_url = file_create_url($file->getFileUri());
-      $file_path = DRUPAL_ROOT . str_replace(\Drupal::request()->getSchemeAndHttpHost(), "", $file_url);
+      $file_path = DRUPAL_ROOT . str_replace($this->getRequest()->getSchemeAndHttpHost(), "", $file_url);
 
       /* Leo lo que quiero importar */
       $aux = $form_state->getValue('content_type_select');
@@ -229,7 +307,7 @@ class ImportForm extends FormBase {
 
         if (FALSE == $resultado->getStatus()) {
           /* El archivo no cumple los parámetros => Creo un archivo con los errores que se han producido en la validación */
-          $file_path = \Drupal::service('extension.path.resolver')->getPath('module', "module_template_import") . "/logs/validate_" . date('Y-m-d') . '_' . \Drupal::currentUser()->id() . '.log';
+          $file_path = $module_path->getPath('module', "module_template_import") . "/logs/validate_" . date('Y-m-d') . '_' . $this->currentUser->id() . '.log';
           FileFunctions::createFileLog($file_path, $resultado->getResponse('errores'));
           $urlError = "<a href='/$file_path' target='_blank'>Ver log</a>";
 
@@ -266,7 +344,7 @@ class ImportForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
     /* Almaceno el array con los datos en una variable de sesión */
-    $temp_store = \Drupal::service('tempstore.private')->get('module_template_import');
+    $temp_store = $this->privateTempStore->get('module_template_import');
     $temp_store->set('array_import_from_file', $this->arrayImportData);
     $temp_store->set('array_headers_data', $this->arrayHeadersData);
 
@@ -275,11 +353,11 @@ class ImportForm extends FormBase {
 
     /* Redirecciono al formulario de confirmación */
     $form_state->setRedirectUrl(Url::fromRoute("custom_module.module_template_import.confirm_form", [
-      'content_type' => $this->contentType,
-      'filename' => $this->fileName,
-      'has_headers' => $this->hasHeaders,
+      'content_type'     => $this->contentType,
+      'filename'         => $this->fileName,
+      'has_headers'      => $this->hasHeaders,
       'update_if_exists' => $this->updateIfExists,
-      'content_class' => $content_class,
+      'content_class'    => $content_class,
     ]));
   }
 
@@ -347,10 +425,9 @@ class ImportForm extends FormBase {
     $bom = pack("CCC", 0xEF, 0xBB, 0xBF);
 
     /* Obtengo datos de configuración del módulo */
-    $config = \Drupal::configFactory()->getEditable('custom_module.module_template_import.settings');
-    $delimiter = $config->get('delimiter') ?? ';';
-    $enclosure = $config->get('enclosure') ?? '"';
-    $escape = $config->get('escape') ?? '\\';
+    $delimiter = $this->config->get('delimiter') ?? ';';
+    $enclosure = $this->config->get('enclosure') ?? '"';
+    $escape    = $this->config->get('escape') ?? '\\';
 
     /* Variables para los datos */
     $newFileData = [];

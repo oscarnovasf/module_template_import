@@ -6,6 +6,15 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
   > Ver TODO.md
 
 ---
+* ## [v2.1.2] - 2023-09-17
+  > Revisión.
+
+  * #### Cambios:
+    - Refactor del formulario de configuración del módulo.
+    - Reestructuración de los archivos "handlers".
+    - Inyección de dependencias en el formulario de importación.
+
+---
 * ## [v2.1.1] - 2023-05-19
   > Revisión.
 

@@ -11,7 +11,7 @@ module_template_import
 
 ## Información
 Este módulo es una plantilla completa a partir de la cual comenzar nuestros
-nuevos módulos de importación de datos.  
+nuevos módulos de importación de datos.
 Este módulo está pensado para ser usado con un script de instalación, el cual no
 se incluye pero se podrá encontrar en un futuro en otro de mis repositorios.
 
@@ -30,8 +30,8 @@ se incluye pero se podrá encontrar en un futuro en otro de mis repositorios.
 
 [mi-web]: https://oscarnovas.com "for developers"
 
-[version]: v2.1.1
-[version-badge]: https://img.shields.io/badge/Versión-2.1.1-blue.svg
+[version]: v2.1.2
+[version-badge]: https://img.shields.io/badge/Versión-2.1.2-blue.svg
 
 [license]: LICENSE.md
 [license-badge]: https://img.shields.io/badge/Licencia-GPLv3+-green.svg "Leer la licencia"

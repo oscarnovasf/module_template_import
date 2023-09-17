@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\module_template_import\lib;
+namespace Drupal\module_template_import\lib\handlers;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\node\Entity\Node;
@@ -13,9 +13,9 @@ use Drupal\module_template_import\lib\base\ImportBase;
 /**
  * Gestiona todo lo relativo a ...
  *
- * Se recomienda usar nombres de clase como ArticleImporterLib.php.
+ * Se recomienda usar nombres de clase como ArticleHandlers.php.
  */
-class NodeSample extends ImportBase {
+class NodeSampleHandler extends ImportBase {
 
   use StringTranslationTrait;
 
